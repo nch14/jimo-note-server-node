@@ -13,10 +13,50 @@ function findOne(id) {
     });
 }
 
-function insert(user) {
+function findAll(userId) {
     return new Promise(function (resolve, reject) {
         var db = new sqlite3.Database('database/jimo.db', function () {
-            db.run(`INSERT INTO user (name , pwd, nickName) VALUES ( "${user.name}" , "${user.pwd}","${user.nickName}");`, function (err) {
+            db.all(`select * from book where userId = ${userId} and state = 1`, function (err, res) {
+                if (!err)
+                    resolve(res);
+                else
+                    reject(err);
+            });
+        });
+    });
+}
+
+function deleteOne(bookId) {
+    return new Promise(function (resolve, reject) {
+        var db = new sqlite3.Database('database/jimo.db', function () {
+            db.run(`UPDATE book set state = 0 where id == ${bookId};`, function (err) {
+                if (err)
+                    reject(err);
+                else {
+                    resolve();
+                }
+            });
+        });
+    });
+}
+
+function insert(book) {
+    return new Promise(function (resolve, reject) {
+        var db = new sqlite3.Database('database/jimo.db', function () {
+            db.run(`INSERT INTO book (userId , name , state) VALUES ( "${book.userId}" , "${book.name}",1);`, function (err) {
+                if (err)
+                    reject(err);
+                else
+                    resolve(this.lastID);
+            });
+        });
+    });
+}
+
+function updateName(book) {
+    return new Promise(function (resolve, reject) {
+        var db = new sqlite3.Database('database/jimo.db', function () {
+            db.run(`UPDATE book set name = "${book.name}" where book.id = ${book.id};`, function (err) {
                 if (err)
                     reject(err);
                 else
@@ -40,37 +80,9 @@ function findByUsername(name) {
     });
 }
 
-function myFollower(userId) {
-    return new Promise(function (resolve, reject) {
-        var db = new sqlite3.Database('database/jimo.db', function () {
-            db.all(`select * from user u join follow f on f.follower == u.id and ${userId} == f.followee`, function (err, res) {
-                if (!err)
-                    resolve(res);
-                else
-                    reject(err);
-            });
-        });
-    });
-}
-
-function myFollowee(userId) {
-    return new Promise(function (resolve, reject) {
-        var db = new sqlite3.Database('database/jimo.db', function () {
-            db.all(`select * from user u join follow f on f.followee == u.id and ${userId} == f.follower`, function (err, res) {
-                if (!err)
-                    resolve(res);
-                else
-                    reject(err);
-            });
-        });
-    });
-}
-
-
 module.exports = {
-    findOne: findOne,
+    findAll: findAll,
     insert: insert,
-    findByUsername: findByUsername,
-    myFollower: myFollower,
-    myFollowee: myFollowee
+    updateName: updateName,
+    deleteOne: deleteOne
 };
